@@ -28,7 +28,7 @@ SECRET_KEY = '4)h86^5se$l$&)0q=nfm)(736!9gq#p45+#2g$w7#a6&#+l#us'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['api.meiduo.site', '127.0.0.1', 'localhost']
 
 # Application definition
 
@@ -41,12 +41,16 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # 注册drf应用
     "rest_framework",
-
+    # 注册CORS
+    'corsheaders',
     # 注册子应用
     'users.apps.UsersConfig',
+    'verifications.apps.VerificationsConfig',
 ]
 
 MIDDLEWARE = [
+    # CORS
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -83,10 +87,10 @@ WSGI_APPLICATION = 'meiduo_mall.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        "HOST":"127.0.0.1",  # 数据库主机
-        "PORT":3306,
-        "USER":'meiduo',
-        "PASSWORD":"meiduo",
+        "HOST": "127.0.0.1",  # 数据库主机
+        "PORT": 3306,
+        "USER": 'meiduo',
+        "PASSWORD": "meiduo",
         'NAME': "meiduo_mall",
         # "USER": 'root',
         # "PASSWORD": "mysql",
@@ -148,6 +152,13 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
+    },
+    "verifications": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/2",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
     }
 }
 # session 保存到缓存当中
@@ -202,3 +213,14 @@ REST_FRAMEWORK = {
     # 异常处理
     'EXCEPTION_HANDLER': 'meiduo_mall.utils.exceptions.exception_handler',
 }
+
+# 创建自定义模型类
+AUTH_USER_MODEL = 'users.User'
+
+# CORS
+CORS_ORIGIN_WHITELIST = (
+    '127.0.0.1:8080',
+    'localhost:8080',
+    'www.meiduo.site:8080',
+)
+CORS_ALLOW_CREDENTIALS = True  # 允许携带cookie
