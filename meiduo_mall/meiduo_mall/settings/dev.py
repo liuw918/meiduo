@@ -223,6 +223,7 @@ REST_FRAMEWORK = {
 # JWT 指明token的过期时间
 JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
+    'JWT_RESPONSE_PAYLOAD_HANDLER': 'users.utils.jwt_response_payload_handler',
 }
 
 # 创建自定义模型类
