@@ -2,6 +2,7 @@ import re
 
 from rest_framework import serializers
 from django_redis import get_redis_connection
+from rest_framework_jwt.settings import api_settings
 
 from .models import User
 
@@ -26,11 +27,11 @@ class CreateUserSerializer(serializers.ModelSerializer):
     sms_code = serializers.CharField(label="验证码", write_only=True)
     # ture
     allow = serializers.CharField(label="是否同意协议", write_only=True)
-    token = serializers.CharField(label="token", read_only=True)
+    token = serializers.CharField(label="token",  read_only=True)  # 此处是JWT加密，增加token字段
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'mobile', 'password', 'password2', 'sms_code', 'allow', 'token']
+        fields = ['id', 'username', 'mobile', 'password', 'password2', 'sms_code', 'allow','token']
 
         extra_kwargs = {
             'password': {
@@ -94,4 +95,14 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
         user.set_password(validated_data['password'])  # 把加密后的密码保存
         user.save()
+
+        # 补充生成记录登录状态的JWT token
+        jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+        jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
+
+        payload = jwt_payload_handler(user)
+        token = jwt_encode_handler(payload)
+
+        user.token=token
+
         return user
