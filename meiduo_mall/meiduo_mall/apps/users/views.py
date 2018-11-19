@@ -1,7 +1,10 @@
 from django.shortcuts import render
+from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 from .models import User
+from . import serializers
 
 
 # url(r'^usernames/(?P<username>\w{5,20})/count/$', views.UsernameCountView.as_view()),
@@ -28,3 +31,8 @@ class MobileCountView(APIView):
             "count": count
         }
         return Response(data)
+
+# 指明用户序列化器
+# url(r'^users/$', views.UserView.as_view()),
+class UserView(CreateAPIView):
+    serializer_class = serializers.CreateUserSerializer
