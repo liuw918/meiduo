@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from rest_framework.generics import CreateAPIView, RetrieveAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_jwt.settings import api_settings
@@ -45,8 +46,8 @@ class LoginApiView(APIView):
     # 用户登录
     def post(self, request):
         data = request.data
-        username = data.get("username","")
-        password = data.get("password","")
+        username = data.get("username", "")
+        password = data.get("password", "")
 
         users = User.objects.filter(Q(username=username) | Q(mobile=username))  # queryset对象，要么有一个，要么没有
         if users:
@@ -54,7 +55,7 @@ class LoginApiView(APIView):
             user = users[0]
 
             if user.check_password(password):
-                # 颁发tokKen
+                # 颁发token
                 # 生成jwttoken
                 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
                 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
@@ -67,6 +68,15 @@ class LoginApiView(APIView):
                     "token": token
                 })
         return Response({"message": "用户名或密码错误"}, status=400)
+
+
+class UserDetailView(RetrieveAPIView):
+    """用户详情视图"""
+    serializer_class = serializers.UserDetailSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
 
 
 
