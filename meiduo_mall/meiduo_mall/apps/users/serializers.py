@@ -49,7 +49,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
     def validate_mobile(self, value):
         # 校验手机号码
         if not re.match(r'^1[3-9]\d{9}$', value):
-            raise serializers.ValidationError('用户名已经存在')
+            raise serializers.ValidationError('手机格式不正确')
         return value
 
     def validate_allow(self, value):
@@ -106,3 +106,6 @@ class CreateUserSerializer(serializers.ModelSerializer):
         user.token=token
 
         return user
+
+
+

@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_jwt.settings import api_settings
@@ -43,10 +43,10 @@ class UserView(CreateAPIView):
 
 class LoginApiView(APIView):
     # 用户登录
-    def post(self, requeset):
-        data = requeset.data
-        username = data.get("username")
-        password = data.get("password")
+    def post(self, request):
+        data = request.data
+        username = data.get("username","")
+        password = data.get("password","")
 
         users = User.objects.filter(Q(username=username) | Q(mobile=username))  # queryset对象，要么有一个，要么没有
         if users:
@@ -54,7 +54,7 @@ class LoginApiView(APIView):
             user = users[0]
 
             if user.check_password(password):
-                # 颁发token
+                # 颁发tokKen
                 # 生成jwttoken
                 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
                 jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
@@ -66,4 +66,7 @@ class LoginApiView(APIView):
                     "user_id": user.id,
                     "token": token
                 })
-        return Response({"messige": "用户名或密码错误"}, status=400)
+        return Response({"message": "用户名或密码错误"}, status=400)
+
+
+
