@@ -27,11 +27,11 @@ class CreateUserSerializer(serializers.ModelSerializer):
     sms_code = serializers.CharField(label="验证码", write_only=True)
     # ture
     allow = serializers.CharField(label="是否同意协议", write_only=True)
-    token = serializers.CharField(label="token",  read_only=True)  # 此处是JWT加密，增加token字段
+    token = serializers.CharField(label="token", read_only=True)  # 此处是JWT加密，增加token字段
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'mobile', 'password', 'password2', 'sms_code', 'allow','token']
+        fields = ['id', 'username', 'mobile', 'password', 'password2', 'sms_code', 'allow', 'token']
 
         extra_kwargs = {
             'password': {
@@ -103,13 +103,33 @@ class CreateUserSerializer(serializers.ModelSerializer):
         payload = jwt_payload_handler(user)
         token = jwt_encode_handler(payload)
 
-        user.token=token
+        user.token = token
 
         return user
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
     """用户详情序列化器"""
+
     class Meta:
         model = User
-        fields = ("id", "username", "mobile","email","email_active")
+        fields = ("id", "username", "mobile", "email", "email_active")
+
+
+class EmailSerialiaizer(serializers.ModelSerializer):
+    """邮箱序列化器"""
+
+    class Meta:
+        model = User
+        fields = ("id", "email")
+        extra_keargs = {
+            "email": {
+                "required": True
+            }
+        }
+
+    def update(self, instance, validated_data):
+
+        instance.email = validated_data['email']
+        instance.save()
+        return instance
