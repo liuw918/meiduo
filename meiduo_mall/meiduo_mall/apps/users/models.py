@@ -3,6 +3,8 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from itsdangerous import TimedJSONWebSignatureSerializer as TS
 
+from meiduo_mall.meiduo_mall.utils.models import BaseModel
+
 
 class User(AbstractUser):
     """用户模型类"""
