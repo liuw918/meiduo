@@ -9,7 +9,7 @@ urlpatterns = [
     url(r'^users/$', views.UserView.as_view()),
     # url(r'^authorizations/$', views.LoginApiView.as_view()),
     url(r'^authorizations/$', obtain_jwt_token),
-    url(r'^user/$',views.UserDetailView.as_view()),
-    url(r'^email/$',views.EmailView.as_view())
-
+    url(r'^user/$', views.UserDetailView.as_view()),
+    url(r'^email/$', views.UserEmailApi.as_view()),
+    url(r'^emails/verification/$', views.EmailVerifyApi.as_view())
 ]

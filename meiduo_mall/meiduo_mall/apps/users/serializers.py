@@ -5,7 +5,7 @@ from django_redis import get_redis_connection
 from rest_framework_jwt.settings import api_settings
 
 from .models import User
-
+from celery_tasks.send_mails.tasks import send_email
 
 class CreateUserSerializer(serializers.ModelSerializer):
     """
@@ -113,23 +113,17 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ("id", "username", "mobile", "email", "email_active")
+        fields = ["id", "username", "mobile", "email", "email_active"]
 
 
-class EmailSerialiaizer(serializers.ModelSerializer):
-    """邮箱序列化器"""
-
-    class Meta:
-        model = User
-        fields = ("id", "email")
-        extra_keargs = {
-            "email": {
-                "required": True
-            }
-        }
+# 更新邮箱序列化器
+class UserEmailSerializer(serializers.Serializer):
+    email = serializers.CharField(label='email', write_only=True)
 
     def update(self, instance, validated_data):
-
         instance.email = validated_data['email']
         instance.save()
+
+        token = instance.create_email_token()
+        send_email.delay(instance.email, token)
         return instance

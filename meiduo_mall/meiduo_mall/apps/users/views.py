@@ -1,13 +1,15 @@
 from django.shortcuts import render
-from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.generics import CreateAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.generics import GenericAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework_jwt.settings import api_settings
+from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 
 from .models import User
 from . import serializers
+from celery_tasks.send_mails.tasks import send_email
 
 
 # url(r'^usernames/(?P<username>\w{5,20})/count/$', views.UsernameCountView.as_view()),
@@ -79,11 +81,35 @@ class UserDetailView(RetrieveAPIView):
         return self.request.user
 
 
-class EmailView(UpdateAPIView):
+class UserEmailView(UpdateAPIView):
     """保存用户邮箱"""
+    serializer_class = serializers.UserEmailSerializer
     perssion_classes = [IsAuthenticated]
-    serializer_class = serializers.EmailSerialiaizer
 
-    def get_object(self, *args, **kwargs):
+    def get_object(self):
         return self.request.user
 
+
+# PUT /email/
+# url(r'^email/$',UserEmailApi.as_view())
+class UserEmailApi(UpdateAPIView):
+    serializer_class = serializers.UserEmailSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self):
+        return self.request.user
+
+
+# GET  emails/verification/?token=token
+# url(r'^emails/verification/$',EmailVerifyApi.as_view())
+class EmailVerifyApi(APIView):
+    def get(self, request):
+        # 获取token
+        token = request.query_params.get('token', False)
+        if not token:
+            return Response({'message': "必须传递token"}, status=400)
+
+        if User.token_extract(token):
+            return Response({'message': 'OK'})
+
+        return Response({'message': "token无效"}, status=400)
