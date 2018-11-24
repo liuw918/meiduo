@@ -4,8 +4,8 @@ from rest_framework.routers import SimpleRouter
 from . import views
 
 urlpatterns = [
-#     url(r'^areas/$', views.AreasApiView.as_view({'get': 'list'})),
-#     url(r'^areas/(?P<pk>\d+)/$', views.AreasApiView.as_view({'get': 'retieve'}))
+    # url(r'^areas/$', views.AreasApiView.as_view({'get': 'list'})),
+    # url(r'^areas/(?P<pk>\d+)/$', views.AreasApiView.as_view({'get': 'retieve'}))
 ]
 
 router = SimpleRouter()

@@ -1,4 +1,5 @@
 from django.conf.urls import url
+from rest_framework.routers import SimpleRouter
 from rest_framework_jwt.views import obtain_jwt_token
 
 from . import views
@@ -13,3 +14,9 @@ urlpatterns = [
     url(r'^email/$', views.UserEmailApi.as_view()),
     url(r'^emails/verification/$', views.EmailVerifyApi.as_view())
 ]
+
+
+router = SimpleRouter()
+router.register('addresses', views.UserAddressApiView, base_name='address')
+
+urlpatterns += router.urls

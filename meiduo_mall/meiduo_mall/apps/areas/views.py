@@ -1,9 +1,11 @@
+from django.shortcuts import render
 from rest_framework.response import Response
-from rest_framework.viewsets import ViewSet
+from rest_framework.viewsets import ViewSet, GenericViewSet
+from rest_framework_extensions.cache.decorators import cache_response
+from rest_framework_extensions.mixins import CacheResponseMixin
 from . import serializers
 from .models import Areas
 
-from rest_framework_extensions.cache.decorators import cache_response
 
 # Create your views here.
 
@@ -14,7 +16,7 @@ from rest_framework_extensions.cache.decorators import cache_response
 # url(r'^areas/(?P<pk>\d+)/$',AreasApiView.as_view({'get':'retrieve'}))
 
 class AreasApiView(ViewSet):
-    @cache_response(timeout=60, cache='default')
+    # @cache_response(timeout=60, cache='default')
     def list(self, request):
         # 获取所有省份
         # 序列化输出
@@ -24,8 +26,8 @@ class AreasApiView(ViewSet):
 
     # 获取下一级地区列表
     # url(r'^areas/(?P<pk>\d+)/$',AreasApiView.as_view({'get':'retrieve'}))
-    @cache_response(timeout=60, cache='default')
-    def retieve(self, request, pk):
+    # @cache_response(timeout=60, cache='default')
+    def retrieve(self, request, pk):
         # 获取当前地区对象
         areas_obj = Areas.objects.get(pk=pk)
         # 序列化输出
