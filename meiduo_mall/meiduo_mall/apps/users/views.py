@@ -77,7 +77,7 @@ class LoginApiView(APIView):
 class UserDetailView(RetrieveAPIView):
     """用户详情视图"""
     serializer_class = serializers.UserDetailSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = (IsAuthenticated,)
 
     def get_object(self):
         return self.request.user
@@ -153,7 +153,7 @@ class UserAddressApiView(GenericViewSet):
 
     # 更新
     def update(self, request, pk):
-        # 获取要更细的地址
+        # 获取要更新的地址
         # 获取提交的数据
         # 构建序列化器
         # 校验数据

@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from goods.models import GoodsChannel
+from .models import GoodsChannel
 
 
 def get_categories():
