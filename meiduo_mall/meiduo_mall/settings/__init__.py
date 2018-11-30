@@ -11,5 +11,22 @@ def static_list(sender, **kwargs):
         from celery_tasks.htmls.tasks import generate_static_list_search_html
         generate_static_list_search_html.delay()
 
+
+def create_sku_html(sender, **kwargs):
+    # 判断是否更新的是商品 SKU,SKUImage,SKUSpecification,SpecificationOption,GoodsSpecification,Goods,Brand,GoodsChannel
+    # 如果是就更新页面
+    # kwargs:
+    # signal
+    # instance 修改或新建的模型类对象
+
+    if getattr(sender, '__name__', 'none') == 'SKU':
+        from celery_tasks.htmls.tasks import generate_static_sku_detail_html
+        instance = kwargs['instance']
+        generate_static_sku_detail_html.delay(instance.id)
+
+
+# 绑定信号
 post_save.connect(static_list)
 post_delete.connect(static_list)
+
+post_save.connect(create_sku_html)
