@@ -27,7 +27,7 @@ class UserCartView(APIView):
             conn = get_redis_connection('cart')
             cart_id = 'cart_%d' % user.id
             cart_selected_id = 'cart_selected_%d' % user.id
-            pipeline = conn.pipeine()
+            pipeline = conn.pipeline()
             # 修改商品数量
             pipeline.hincrby(cart_id, sku_id, count)
 
