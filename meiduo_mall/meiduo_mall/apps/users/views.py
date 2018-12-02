@@ -250,3 +250,5 @@ class UserHistory(APIView):
         serializer = SkuSerializer(skus, many=True)
 
         return Response(serializer.data)
+
+

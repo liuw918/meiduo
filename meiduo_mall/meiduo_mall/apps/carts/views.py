@@ -4,6 +4,9 @@ from django_redis import get_redis_connection
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from . import serializers
+from goods.models import SKU
+
 
 class UserCartView(APIView):
     def perform_authentication(self, request):
@@ -65,3 +68,57 @@ class UserCartView(APIView):
         response.set_cookie('cart', json.dumps(cart), max_age=60 * 60 * 24 * 365)
 
         return response
+
+    def get(self, request):
+        # 判断用户是否登录
+        try:
+            user = request.user
+        except Exception:
+            # 异常说明用户未登录
+            user = None
+        if user is not None and user.is_authenticated:
+            # 获取商品id和数量
+            conn = get_redis_connection('cart')
+            cart_id = 'cart_%d' % user.id
+            cart_selected_id = 'cart_selected_%d' % user.id
+            # {
+            #     sku_id:count
+            #     b'1':b'10'
+            # }
+            sku_ids = conn.hgetall(cart_id)
+            cart_selected_ids = conn.smembers(cart_selected_id)
+            skus = []
+            for sku_id in sku_ids:
+                sku = SKU.objects.get(id=int(sku_id))
+                sku.comment = int(sku_ids[sku_id])
+
+                if sku_id in cart_selected_ids:
+                    sku.selected = True
+                else:
+                    sku.selected = False
+
+                skus.append(sku)
+            serializer = serializers.CartSkuSerializer(skus, many=True)
+            return Response(serializer.data)
+        else:
+            # 操作cookie
+            cart_cookie = request.COOKIES.get('cart', None)
+            if cart_cookie:
+                cart = json.loads(cart_cookie)
+            else:
+                cart = {}
+            # {
+            #   sku_id:{
+            #       count
+            #       selected
+            #   ]
+            # }
+            skus = []
+            for sku_id in cart:
+                sku = SKU.objects.get(id=sku_id)
+                sku.cont = cart[sku_id]['count']
+                sku.selected = cart[sku_id]['selected']
+                skus.append(sku)
+
+            serializer = serializers.CartSkuSerializer(skus, many=True)
+            return Response(serializer.data)
