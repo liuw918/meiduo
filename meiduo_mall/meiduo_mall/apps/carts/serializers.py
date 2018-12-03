@@ -9,4 +9,4 @@ class CartSkuSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SKU
-        fields = ['id', 'count','price','default_image_url','selected']
+        fields = ['id', 'count','name','price','default_image_url','selected']

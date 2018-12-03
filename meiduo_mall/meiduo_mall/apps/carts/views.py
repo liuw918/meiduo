@@ -8,6 +8,10 @@ from . import serializers
 from goods.models import SKU
 
 
+
+
+
+
 class UserCartView(APIView):
     def perform_authentication(self, request):
         pass
@@ -45,29 +49,28 @@ class UserCartView(APIView):
         else:
             # 操作cookie
             cart_cookie = request.COOKIES.get('cart', None)
-        if cart_cookie:
-            cart = json.loads(cart_cookie)
-        else:
-            cart = {}
+            if cart_cookie:
+                cart = json.loads(cart_cookie)
+            else:
+                cart = {}
 
-        # 修改购物车数量
-        if sku_id in cart:
-            cart[sku_id]['count'] += count
-        else:
-            cart[sku_id] = {
-                "count": count
-            }
+            # 修改购物车数量
+            if sku_id in cart:
+                cart[sku_id]['count'] += count
+            else:
+                cart[sku_id] = {
+                    "count": count
+                }
+            # 修改是否选中
+            if selected:
+                cart[sku_id]['selected'] = True
+            else:
+                cart[sku_id]['selected'] = False
 
-        # 修改是否选中
-        if selected:
-            cart[sku_id]['selected'] = True
-        else:
-            cart[sku_id]['selected'] = False
+            response = Response(data, status=201)
+            response.set_cookie('cart', json.dumps(cart), max_age=60 * 60 * 24 * 365)
 
-        response = Response(data, status=201)
-        response.set_cookie('cart', json.dumps(cart), max_age=60 * 60 * 24 * 365)
-
-        return response
+            return response
 
     def get(self, request):
         # 判断用户是否登录
@@ -108,10 +111,10 @@ class UserCartView(APIView):
             else:
                 cart = {}
             # {
-            #   sku_id:{
-            #       count
-            #       selected
-            #   }
+            #       sku_id:{
+            #           count
+            #           selected
+            #       }
             # }
             skus = []
             for sku_id in cart:
@@ -134,9 +137,10 @@ class UserCartView(APIView):
         except Exception:
             # 异常说明用户未登录
             user = None
+
         if user is not None and user.is_authenticated:
             conn = get_redis_connection('cart')
-            cart_id = 'cart_ %d' % user.id
+            cart_id = 'cart_%d' % user.id
             cart_selected_id = 'cart_selected_%d' % user.id
             pipeline = conn.pipeline()
             # 设置sku_id数量
