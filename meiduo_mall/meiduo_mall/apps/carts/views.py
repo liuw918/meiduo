@@ -55,7 +55,7 @@ class UserCartView(APIView):
             cart[sku_id]['count'] += count
         else:
             cart[sku_id] = {
-                'count': count
+                "count": count
             }
 
         # 修改是否选中
@@ -90,7 +90,7 @@ class UserCartView(APIView):
             skus = []
             for sku_id in sku_ids:
                 sku = SKU.objects.get(id=int(sku_id))
-                sku.comment = int(sku_ids[sku_id])
+                sku.count = int(sku_ids[sku_id])
 
                 if sku_id in cart_selected_ids:
                     sku.selected = True
@@ -111,14 +111,62 @@ class UserCartView(APIView):
             #   sku_id:{
             #       count
             #       selected
-            #   ]
+            #   }
             # }
             skus = []
             for sku_id in cart:
                 sku = SKU.objects.get(id=sku_id)
-                sku.cont = cart[sku_id]['count']
+                sku.count = cart[sku_id]['count']
                 sku.selected = cart[sku_id]['selected']
                 skus.append(sku)
 
             serializer = serializers.CartSkuSerializer(skus, many=True)
             return Response(serializer.data)
+
+    def put(self, request):
+        data = request.data
+        sku_id = data['sku_id']
+        count = data['count']
+        selected = data.get('selected', False)
+        # 判断用户是否登录
+        try:
+            user = request.user
+        except Exception:
+             # 异常说明用户未登录
+            user = None
+        if user is not None and user.is_authenticated:
+            conn = get_redis_connection('cart')
+            cart_id = 'cart_ %d' % user.id
+            cart_selected_id = 'cart_selected_%d' % user.id
+            pipeline = conn.pipeline()
+            # 设置sku_id数量
+            pipeline.hmset(cart_id, {sku_id: count})
+            # 修改选中状态
+            if selected:
+                pipeline.sadd(cart_selected_id, sku_id)
+            else:
+                pipeline.srem(cart_selected_id, sku_id)
+            pipeline.execute()
+
+            return Response(data, status=201)
+        else:
+            # 操作cookie
+            cart_cookie = request.COOKIES.get('cart', None)
+            if cart_cookie:
+                cart = json.loads(cart_cookie)
+            else:
+                cart = {}
+
+            if selected:
+                cart[str(sku_id)] = {
+                    "count": count,
+                    "selected": True
+                }
+            else:
+                cart[str(sku_id)] = {
+                    "count": count,
+                    "selected": False
+                }
+            response = Response(data, status=201)
+            response.set_cookie('cart', json.dumps(cart), max_age=60 * 60 * 24 * 365)
+            return response
